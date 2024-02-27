@@ -8,11 +8,14 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
 io.on("connection", (socket) => {
-  // console.log("new socket added", socket.id);
+  console.log("new socket added", socket.id);
   socket.on("test", (msg) => {
     // console.log('message from test.html: ' + msg);
-    // io.emit("retest", msg);
-    socket.broadcast.emit("retest", msg);
+    io.emit("retest", socket.id.substring(0, 5) + ": " + msg);
+    // socket.broadcast.emit("retest",socket.id.substring(0,5)+": "+ msg);
+  });
+  socket.on("typing", (id) => {
+    socket.broadcast.emit("typing", id.substring(0, 5));
   });
 });
 

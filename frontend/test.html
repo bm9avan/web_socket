@@ -58,6 +58,7 @@
   </head>
   <body>
     <ul id="messages"></ul>
+    <li id="typing" style="display: none"></li>
     <form id="form" action="">
       <input id="input" autocomplete="off" /><button id="send">Send</button>
     </form>
@@ -65,10 +66,18 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+    // const getid = async () => {
+    //   const s = await io();
+
+    //   console.log(s.id);
+    // };
+    // getid();
+    // console.log(socket, typeof socket);
     const form = document.getElementById("form");
     const input = document.getElementById("input");
     const send = document.getElementById("send");
     const messages = document.getElementById("messages");
+    const type = document.getElementById("typing");
     form.onsubmit = (e) => {
       e.preventDefault();
       if (input.value) {
@@ -81,8 +90,23 @@
       console.log("recived");
       const item = document.createElement("li");
       item.textContent = msg;
+      type.style.display = "none";
       messages.appendChild(item);
       window.scrollTo(0, document.body.scrollHeight);
+    });
+    document
+      .getElementById("input")
+      .addEventListener("keypress", () => socket.emit("typing", socket.id));
+    let timerType;
+    socket.on("typing", (id) => {
+      type.style.display = "block";
+      type.innerHTML = `${id} typing...`;
+      clearTimeout(timerType);
+      timerType = setTimeout(() => {
+        console.log("in time out");
+        type.style.display = "none";
+      }, 3000);
+      console.log("type activity by", id);
     });
   </script>
 </html>
