@@ -7,15 +7,34 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
+const userIo= io.of("/user")
+userIo.on("connection", (socket)=>{
+  console.log("connected to namesapace"+socket.username)
+})
+userIo.use((socket, next)=>{
+  if(socket.handshake.token){
+    socket.username="name"//fettchUserFromToken(socket.handshake.token)
+    next()
+  }else{
+    next(new Error("invalid token"))
+  }
+})
+
 io.on("connection", (socket) => {
   console.log("new socket added", socket.id);
-  socket.on("test", (msg) => {
-    // console.log('message from test.html: ' + msg);
-    io.emit("retest", socket.id.substring(0, 5) + ": " + msg);
-    // socket.broadcast.emit("retest",socket.id.substring(0,5)+": "+ msg);
+  socket.on("message", (msgObj, room) => {
+    if(room==""){
+      socket.broadcast.emit("message", msgObj);
+    }else{
+      socket.to(room).emit("message", msgObj);
+    }
   });
-  socket.on("typing", (id) => {
-    socket.broadcast.emit("typing", id.substring(0, 5));
+  socket.on("typing", (user) => {
+    socket.broadcast.emit("typing", user);
+  });
+  socket.on("newuserRoom", (obj) => {
+    socket.join(obj.room)
+    socket.broadcast.emit("newuserRoom", obj);
   });
 });
 
